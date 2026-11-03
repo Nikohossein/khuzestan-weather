@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1a2e">
+  <title>آب‌وهوای خوزستان و ایذه | ساعت و وضعیت زنده</title>
+  <meta name="description" content="وضعیت لحظه‌ای آب‌وهوا، پیش‌بینی ۵ روزه و ساعت زنده برای اهواز (خوزستان) و ایذه.">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+
+  <main class="wrap">
+    <header class="hero">
+      <div class="hero-text">
+        <p class="eyebrow">وضعیت زنده آب‌وهوا</p>
+        <h1>خوزستان <span class="amp">و</span> ایذه</h1>
+        <p class="date" id="date-fa">—</p>
+        <p class="date-sub" id="date-en">—</p>
+      </div>
+
+      <div class="clock" aria-label="ساعت به وقت ایران">
+        <svg class="analog" viewBox="0 0 200 200" role="img" aria-hidden="true">
+          <circle class="face" cx="100" cy="100" r="94"/>
+          <g id="ticks"></g>
+          <line id="hand-h" class="hand h" x1="100" y1="100" x2="100" y2="56"/>
+          <line id="hand-m" class="hand m" x1="100" y1="100" x2="100" y2="38"/>
+          <line id="hand-s" class="hand s" x1="100" y1="112" x2="100" y2="30"/>
+          <circle class="pin" cx="100" cy="100" r="5"/>
+        </svg>
+        <div class="digital">
+          <div class="time" id="time" dir="ltr">--:--:--</div>
+          <div class="tz">به وقت ایران (تهران)</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="cities" id="cities" aria-live="polite">
+      <article class="card" data-city="ahvaz">
+        <div class="skeleton">در حال دریافت اطلاعات اهواز…</div>
+      </article>
+      <article class="card" data-city="izeh">
+        <div class="skeleton">در حال دریافت اطلاعات ایذه…</div>
+      </article>
+    </section>
+
+    <footer class="foot">
+      <p>
+        داده‌ها از سرویس <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
+        (مدل‌های هواشناسی جهانی) دریافت می‌شوند و هر ۱۰ دقیقه خودکار به‌روز می‌شوند.
+      </p>
+      <p class="muted" id="status">آخرین به‌روزرسانی: —</p>
+      <button id="refresh" type="button">به‌روزرسانی الان</button>
+      <p class="muted small">
+        این صفحه یک نمایش‌دهنده‌ی عمومی است و جایگزین پیش‌بینی رسمی اداره‌ی کل هواشناسی نیست؛
+        برای هشدارهای رسمی (گرد و غبار، سیل، گرمای شدید) به منابع رسمی مراجعه کنید.
+      </p>
+    </footer>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>
