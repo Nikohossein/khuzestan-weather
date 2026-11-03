@@ -124,8 +124,8 @@
   function url(c) {
     return "https://api.open-meteo.com/v1/forecast" +
       "?latitude=" + c.lat + "&longitude=" + c.lon +
-      "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m" +
-      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset" +
+      "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m,cloud_cover,visibility" +
+      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,uv_index_max,sunrise,sunset" +
       "&hourly=temperature_2m,precipitation_probability&forecast_days=5&timezone=" + encodeURIComponent(TZ) + "&wind_speed_unit=kmh";
   }
 
@@ -157,13 +157,19 @@
         '<text x="' + x(i).toFixed(1) + '" y="' + (H - 10) + '" class="ch">' + toFaDigits(times[i].slice(11, 13)) + '</text>';
     }
     return '<div class="chart" dir="ltr"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="نمودار دمای ۲۴ ساعت آینده">' +
-      '<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb454" stop-opacity=".45"/><stop offset="1" stop-color="#ffb454" stop-opacity="0"/></linearGradient></defs>' +
+      '<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1de9c6"/><stop offset=".5" stop-color="#ffc857"/><stop offset="1" stop-color="#ff4d8d"/></linearGradient><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6a3d" stop-opacity=".45"/><stop offset="1" stop-color="#ff6a3d" stop-opacity="0"/></linearGradient></defs>' +
       '<path d="' + area + '" fill="url(#cg)"/><path d="' + line + '" class="cline"/>' + marks + '</svg></div>';
   }
 
+  function uvl(v) {
+    if (v == null) return "—";
+    return v < 3 ? "کم" : v < 6 ? "متوسط" : v < 8 ? "زیاد" : v < 11 ? "بسیار زیاد" : "فوق‌العاده";
+  }
   function render(card, c, d) {
     var cur = d.current, daily = d.daily;
     var now = wmo(cur.weather_code, cur.is_day);
+    var uv = daily.uv_index_max ? daily.uv_index_max[0] : null;
+    if (card.dataset.city === "ahvaz") window.dispatchEvent(new CustomEvent("wx", { detail: { code: cur.weather_code, isDay: cur.is_day, name: c.name, app: cur.apparent_temperature, gust: cur.wind_gusts_10m, hum: cur.relative_humidity_2m, t: cur.temperature_2m } }));
 
     var days = "";
     for (var i = 0; i < daily.time.length; i++) {
@@ -180,7 +186,7 @@
 
     card.innerHTML =
       '<div class="card-top">' +
-        '<div><h2 class="city-name">' + c.name + '</h2><div class="city-sub">' + c.sub + '</div></div>' +
+        '<div><h2 class="city-name" title="جزئیات کامل" tabindex="0">' + c.name + '</h2><div class="city-sub">' + c.sub + '</div></div>' +
         '<div class="cond">به‌روز شده<br>' + hhmm(cur.time) + '</div>' +
       '</div>' +
       '<div class="now">' +
@@ -192,6 +198,14 @@
         '<div class="stat"><b>' + n(cur.relative_humidity_2m) + '٪</b><span>رطوبت</span></div>' +
         '<div class="stat"><b>' + n(cur.wind_speed_10m) + ' km/h</b><span>باد ' + windDir(cur.wind_direction_10m) + '</span></div>' +
         '<div class="stat"><b>' + n(cur.pressure_msl) + ' hPa</b><span>فشار هوا</span></div>' +
+      '</div>' +
+      '<div class="stats">' +
+        '<div class="stat"><b>' + (uv == null ? "—" : faNum1.format(uv)) + '</b><span>شاخص UV · ' + uvl(uv) + '</span></div>' +
+        '<div class="stat"><b>' + n(cur.wind_gusts_10m) + ' km/h</b><span>وزش باد (تندباد)</span></div>' +
+        '<div class="stat"><b>' + n(cur.dew_point_2m) + '°</b><span>نقطه‌ی شبنم</span></div>' +
+        '<div class="stat"><b>' + n(cur.cloud_cover) + '٪</b><span>پوشش ابر</span></div>' +
+        '<div class="stat"><b>' + faNum1.format((cur.visibility || 0) / 1000) + ' km</b><span>دید افقی</span></div>' +
+        '<div class="stat"><b>' + faNum1.format(daily.precipitation_sum ? daily.precipitation_sum[0] : 0) + ' mm</b><span>بارش امروز</span></div>' +
       '</div>' +
       '<div class="air">در حال دریافت کیفیت هوا…</div>' +
       '<div class="sec-title">دمای ۲۴ ساعت آینده (ساعت به وقت ایران)</div>' + chartSvg(d) +
@@ -219,7 +233,7 @@
 
   /* کیفیت هوا و گرد و غبار */
   function aqiInfo(v) {
-    if (v <= 50) return ["خوب", "#4ade80"];
+    if (v <= 50) return ["خوب", "#1de9c6"];
     if (v <= 100) return ["متوسط", "#facc15"];
     if (v <= 150) return ["ناسالم برای گروه‌های حساس", "#fb923c"];
     if (v <= 200) return ["ناسالم", "#f87171"];
@@ -239,6 +253,7 @@
         var a = d.current;
         if (!a || a.us_aqi == null) { el.remove(); return; }
         var info = aqiInfo(a.us_aqi);
+        window.dispatchEvent(new CustomEvent("aq", { detail: { name: c.name, pm10: a.pm10, dust: a.dust } }));
         el.innerHTML = '<div class="air-main"><span class="dot" style="background:' + info[1] + '"></span>' +
           '<b>کیفیت هوا: ' + n(a.us_aqi) + '</b><span>' + info[0] + '</span></div>' +
           '<div class="air-sub">PM10: ' + val(a.pm10) + ' · PM2.5: ' + val(a.pm2_5) +
@@ -249,14 +264,18 @@
 
   /* سایر شهرهای خوزستان (یک درخواست برای همه) */
   var OTHERS = [
-    { name: "آبادان", lat: 30.3392, lon: 48.3043 },
-    { name: "خرمشهر", lat: 30.4256, lon: 48.1893 },
-    { name: "ماهشهر", lat: 30.5592, lon: 49.1981 },
-    { name: "بهبهان", lat: 30.5959, lon: 50.2417 },
-    { name: "دزفول", lat: 32.3830, lon: 48.4058 },
-    { name: "شوشتر", lat: 32.0450, lon: 48.8570 },
-    { name: "اندیمشک", lat: 32.4600, lon: 48.3500 },
-    { name: "مسجدسلیمان", lat: 31.9364, lon: 49.3036 }
+    { name: "آبادان", lat: 30.3392, lon: 48.3043 }, { name: "خرمشهر", lat: 30.4256, lon: 48.1893 },
+    { name: "ماهشهر", lat: 30.5592, lon: 49.1981 }, { name: "بندر امام خمینی", lat: 30.4350, lon: 49.0790 },
+    { name: "بهبهان", lat: 30.5959, lon: 50.2417 }, { name: "دزفول", lat: 32.3830, lon: 48.4058 },
+    { name: "شوشتر", lat: 32.0450, lon: 48.8570 }, { name: "اندیمشک", lat: 32.4600, lon: 48.3500 },
+    { name: "مسجدسلیمان", lat: 31.9364, lon: 49.3036 }, { name: "رامهرمز", lat: 31.2801, lon: 49.6035 },
+    { name: "شادگان", lat: 30.6500, lon: 48.6667 }, { name: "سوسنگرد", lat: 31.5600, lon: 48.1800 },
+    { name: "باغ‌ملک", lat: 31.5236, lon: 49.8853 }, { name: "امیدیه", lat: 30.7547, lon: 49.6958 },
+    { name: "هندیجان", lat: 30.2358, lon: 49.7189 }, { name: "شوش", lat: 32.1944, lon: 48.2436 },
+    { name: "گتوند", lat: 32.2500, lon: 48.8167 }, { name: "رامشیر", lat: 30.8900, lon: 49.4100 },
+    { name: "لالی", lat: 32.3253, lon: 49.0900 }, { name: "دهدز", lat: 31.7210, lon: 50.2870 },
+    { name: "هویزه", lat: 31.4650, lon: 48.0460 }, { name: "حمیدیه", lat: 31.4833, lon: 48.4333 },
+    { name: "ملاثانی", lat: 31.5870, lon: 48.8860 }, { name: "آغاجاری", lat: 30.7060, lon: 49.8350 }
   ];
 
   function loadOthers() {
@@ -265,19 +284,20 @@
     var u = "https://api.open-meteo.com/v1/forecast?latitude=" +
       OTHERS.map(function (o) { return o.lat; }).join(",") + "&longitude=" +
       OTHERS.map(function (o) { return o.lon; }).join(",") +
-      "&current=temperature_2m,relative_humidity_2m,weather_code,is_day" +
-      "&daily=temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=" + encodeURIComponent(TZ);
+      "&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_gusts_10m,weather_code,is_day" +
+      "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1&timezone=" + encodeURIComponent(TZ);
     return fetch(u, { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (arr) {
         if (!Array.isArray(arr)) arr = [arr];
         box.innerHTML = arr.map(function (d, i) {
           var w = wmo(d.current.weather_code, d.current.is_day);
-          return '<div class="mini"><div class="mini-top"><b>' + OTHERS[i].name + '</b><span class="mini-ic">' + w.icon + '</span></div>' +
+          return '<div class="mini" role="button" tabindex="0" data-i="' + i + '"><div class="mini-top"><b>' + OTHERS[i].name + '</b><span class="mini-ic">' + w.icon + '</span></div>' +
             '<div class="mini-t">' + n(d.current.temperature_2m) + '°</div>' +
             '<div class="mini-s">' + w.text + '</div>' +
             '<div class="mini-r">بیشینه ' + n(d.daily.temperature_2m_max[0]) + '° · کمینه ' + n(d.daily.temperature_2m_min[0]) + '° · رطوبت ' + n(d.current.relative_humidity_2m) + '٪</div></div>';
         }).join("");
+        window.dispatchEvent(new CustomEvent("others", { detail: arr }));
         return true;
       })
       .catch(function () {
@@ -301,6 +321,7 @@
     });
   }
 
+  window.KW = { n: n, fa: toFaDigits, wmo: wmo, wd: windDir, aqi: aqiInfo, uvl: uvl, CITIES: CITIES, OTHERS: OTHERS };
   btn.addEventListener("click", loadAll);
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) loadAll();
