@@ -150,6 +150,44 @@ h1 .amp { color: var(--accent-2); font-weight: 400; }
 #refresh:hover { transform: translateY(-2px); }
 #refresh:disabled { opacity: .6; cursor: wait; }
 
+/* کیفیت هوا */
+.air {
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 16px; padding: 10px 14px; margin-bottom: 16px; font-size: .92rem;
+}
+.air-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.air-main span:last-child { color: var(--ink-soft); }
+.air .dot { width: 11px; height: 11px; border-radius: 50%; box-shadow: 0 0 10px currentColor; flex: none; }
+.air-sub { color: var(--ink-soft); font-size: .8rem; margin-top: 2px; }
+
+/* نمودار ساعتی */
+.sec-title { font-size: .85rem; color: var(--ink-soft); margin: 14px 2px 8px; }
+.chart { background: rgba(255, 255, 255, .04); border-radius: 16px; padding: 6px 4px 0; }
+.chart svg { width: 100%; height: auto; display: block; }
+.cline { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.cdot { fill: #fff; stroke: var(--accent); stroke-width: 2; }
+.ct { fill: #fff; font-size: 13px; font-weight: 700; text-anchor: middle; font-family: inherit; }
+.ch { fill: var(--ink-soft); font-size: 12px; text-anchor: middle; font-family: inherit; }
+
+/* سایر شهرها */
+.others-wrap { margin-top: 34px; }
+.others-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 14px; }
+.others { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.mini {
+  background: var(--glass); border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-radius: 20px; padding: 14px 16px; transition: transform .2s, background .2s;
+}
+.mini:hover { transform: translateY(-4px); background: rgba(255, 255, 255, .11); }
+.mini-top { display: flex; justify-content: space-between; align-items: center; }
+.mini-top b { font-size: 1.1rem; }
+.mini-ic { font-size: 1.7rem; }
+.mini-t { font-size: 2.2rem; font-weight: 800; line-height: 1.2; }
+.mini-s { color: var(--ink-soft); font-size: .88rem; }
+.mini-r { color: var(--ink-soft); font-size: .74rem; margin-top: 6px; }
+@media (max-width: 860px) { .others { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 380px) { .others { grid-template-columns: 1fr; } }
+
 /* ریسپانسیو */
 @media (max-width: 860px) {
   .cities { grid-template-columns: 1fr; }
