@@ -262,50 +262,68 @@
       .catch(function () { el.remove(); });
   }
 
-  /* سایر شهرهای خوزستان (یک درخواست برای همه) */
-  var OTHERS = [
-    { name: "آبادان", lat: 30.3392, lon: 48.3043 }, { name: "خرمشهر", lat: 30.4256, lon: 48.1893 },
-    { name: "ماهشهر", lat: 30.5592, lon: 49.1981 }, { name: "بندر امام خمینی", lat: 30.4350, lon: 49.0790 },
-    { name: "بهبهان", lat: 30.5959, lon: 50.2417 }, { name: "دزفول", lat: 32.3830, lon: 48.4058 },
-    { name: "شوشتر", lat: 32.0450, lon: 48.8570 }, { name: "اندیمشک", lat: 32.4600, lon: 48.3500 },
-    { name: "مسجدسلیمان", lat: 31.9364, lon: 49.3036 }, { name: "رامهرمز", lat: 31.2801, lon: 49.6035 },
-    { name: "شادگان", lat: 30.6500, lon: 48.6667 }, { name: "سوسنگرد", lat: 31.5600, lon: 48.1800 },
-    { name: "باغ‌ملک", lat: 31.5236, lon: 49.8853 }, { name: "امیدیه", lat: 30.7547, lon: 49.6958 },
-    { name: "هندیجان", lat: 30.2358, lon: 49.7189 }, { name: "شوش", lat: 32.1944, lon: 48.2436 },
-    { name: "گتوند", lat: 32.2500, lon: 48.8167 }, { name: "رامشیر", lat: 30.8900, lon: 49.4100 },
-    { name: "لالی", lat: 32.3253, lon: 49.0900 }, { name: "دهدز", lat: 31.7210, lon: 50.2870 },
-    { name: "هویزه", lat: 31.4650, lon: 48.0460 }, { name: "حمیدیه", lat: 31.4833, lon: 48.4333 },
-    { name: "ملاثانی", lat: 31.5870, lon: 48.8860 }, { name: "آغاجاری", lat: 30.7060, lon: 49.8350 }
-  ];
+  /* شهرهای هر استان (درخواست‌ها تکه‌تکه + کش ۱۰ دقیقه‌ای برای سبک ماندن روی گوشی) */
+  var IRAN = window.IRAN || [];
+  var OTHERS = [];
+  var curProv = "خوزستان", loadSeq = 0;
+  try { var sp = localStorage.getItem("kw-prov"); if (sp) curProv = sp; } catch (e) {}
+  function setProvince(name) {
+    var p = IRAN.filter(function (x) { return x.n === name; })[0] || IRAN[0];
+    if (!p) return;
+    curProv = p.n;
+    try { localStorage.setItem("kw-prov", curProv); } catch (e) {}
+    OTHERS.length = 0;
+    p.c.forEach(function (c) { OTHERS.push({ name: c[0], lat: c[1], lon: c[2], sub: "استان " + p.n }); });
+    var t = document.getElementById("others-title");
+    if (t) t.textContent = "شهرهای " + p.n;
+  }
+  setProvince(curProv);
+
+  function chunkUrl(list) {
+    return "https://api.open-meteo.com/v1/forecast?latitude=" +
+      list.map(function (o) { return o.lat; }).join(",") + "&longitude=" +
+      list.map(function (o) { return o.lon; }).join(",") +
+      "&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_gusts_10m,weather_code,is_day" +
+      "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1&timezone=" + encodeURIComponent(TZ);
+  }
+  function showOthers(box, arr) {
+    box.innerHTML = arr.map(function (d, i) {
+      var w = wmo(d.current.weather_code, d.current.is_day);
+      return '<div class="mini" role="button" tabindex="0" data-i="' + i + '"><div class="mini-top"><b>' + OTHERS[i].name + '</b><span class="mini-ic">' + w.icon + '</span></div>' +
+        '<div class="mini-t">' + n(d.current.temperature_2m) + '°</div>' +
+        '<div class="mini-s">' + w.text + '</div>' +
+        '<div class="mini-r">بیشینه ' + n(d.daily.temperature_2m_max[0]) + '° · کمینه ' + n(d.daily.temperature_2m_min[0]) + '° · رطوبت ' + n(d.current.relative_humidity_2m) + '٪</div></div>';
+    }).join("");
+    window.dispatchEvent(new CustomEvent("others", { detail: arr }));
+  }
 
   function loadOthers() {
     var box = document.getElementById("others");
-    if (!box) return Promise.resolve(true);
-    var u = "https://api.open-meteo.com/v1/forecast?latitude=" +
-      OTHERS.map(function (o) { return o.lat; }).join(",") + "&longitude=" +
-      OTHERS.map(function (o) { return o.lon; }).join(",") +
-      "&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_gusts_10m,weather_code,is_day" +
-      "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1&timezone=" + encodeURIComponent(TZ);
-    return fetch(u, { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function (arr) {
-        if (!Array.isArray(arr)) arr = [arr];
-        box.innerHTML = arr.map(function (d, i) {
-          var w = wmo(d.current.weather_code, d.current.is_day);
-          return '<div class="mini" role="button" tabindex="0" data-i="' + i + '"><div class="mini-top"><b>' + OTHERS[i].name + '</b><span class="mini-ic">' + w.icon + '</span></div>' +
-            '<div class="mini-t">' + n(d.current.temperature_2m) + '°</div>' +
-            '<div class="mini-s">' + w.text + '</div>' +
-            '<div class="mini-r">بیشینه ' + n(d.daily.temperature_2m_max[0]) + '° · کمینه ' + n(d.daily.temperature_2m_min[0]) + '° · رطوبت ' + n(d.current.relative_humidity_2m) + '٪</div></div>';
-        }).join("");
-        window.dispatchEvent(new CustomEvent("others", { detail: arr }));
-        return true;
-      })
-      .catch(function () {
-        if (!box.querySelector(".mini")) {
-          box.innerHTML = '<div class="err" style="grid-column:1/-1">دریافت اطلاعات سایر شهرها ممکن نشد.</div>';
-        }
-        return false;
-      });
+    if (!box || !OTHERS.length) return Promise.resolve(true);
+    var seq = ++loadSeq, list = OTHERS.slice(), key = "kw-c:" + curProv;
+    try {
+      var c = JSON.parse(localStorage.getItem(key) || "null");
+      if (c && Date.now() - c.t < REFRESH_MS && c.d.length === list.length) { showOthers(box, c.d); return Promise.resolve(true); }
+    } catch (e) {}
+    if (!box.querySelector(".mini")) box.innerHTML = '<div class="skeleton" style="grid-column:1/-1">در حال دریافت اطلاعات شهرها…</div>';
+    var parts = [];
+    for (var i = 0; i < list.length; i += 40) parts.push(list.slice(i, i + 40));
+    return Promise.all(parts.map(function (p) {
+      return fetch(chunkUrl(p), { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+        .then(function (a) { return Array.isArray(a) ? a : [a]; });
+    })).then(function (res) {
+      if (seq !== loadSeq) return true;
+      var arr = [].concat.apply([], res);
+      try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), d: arr })); } catch (e) {}
+      showOthers(box, arr);
+      return true;
+    }).catch(function () {
+      if (seq === loadSeq && !box.querySelector(".mini")) {
+        box.innerHTML = '<div class="err" style="grid-column:1/-1">دریافت اطلاعات شهرها ممکن نشد. دکمه‌ی «به‌روزرسانی الان» را بزنید.</div>';
+      }
+      return false;
+    });
   }
 
   var btn = document.getElementById("refresh");
@@ -321,7 +339,7 @@
     });
   }
 
-  window.KW = { n: n, fa: toFaDigits, wmo: wmo, wd: windDir, aqi: aqiInfo, uvl: uvl, CITIES: CITIES, OTHERS: OTHERS };
+  window.KW = { n: n, fa: toFaDigits, wmo: wmo, wd: windDir, aqi: aqiInfo, uvl: uvl, CITIES: CITIES, OTHERS: OTHERS, IRAN: IRAN, prov: function () { return curProv; }, setProvince: setProvince, reload: loadOthers };
   btn.addEventListener("click", loadAll);
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) loadAll();

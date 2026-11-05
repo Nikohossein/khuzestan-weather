@@ -1,16 +1,17 @@
 (function(){
   "use strict";
-  var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches, small=innerWidth<900||matchMedia("(hover:none)").matches, lastT=0;
   var body=document.body, cv=document.getElementById("fx"), ctx=cv.getContext("2d"), W,H,P=[],mode="clear";
   function size(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
   addEventListener("resize",size);size();
 
   /* ذرات بر اساس وضعیت هوا: ستاره، باران، گرد و غبار، ذرات گرم */
   function spawn(){
-    var n=mode==="rain"?140:mode==="night"?90:70;P=[];
+    var n=mode==="rain"?140:mode==="night"?90:70;if(small)n=Math.round(n*.3);P=[];
     for(var i=0;i<n;i++)P.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+.4,v:Math.random()*.6+.2,a:Math.random()*Math.PI*2});
   }
   function frame(t){
+    if(document.hidden||(small&&t-lastT<40)){requestAnimationFrame(frame);return;}lastT=t;
     ctx.clearRect(0,0,W,H);
     P.forEach(function(p){
       if(mode==="rain"){
@@ -40,7 +41,7 @@
 
   /* نور دنبال‌کننده‌ی ماوس + نشانگر 3D کارت‌ها */
   var spot=document.querySelector(".spot");
-  addEventListener("pointermove",function(e){body.style.setProperty("--mx",e.clientX+"px");body.style.setProperty("--my",e.clientY+"px");});
+  if(!small)addEventListener("pointermove",function(e){body.style.setProperty("--mx",e.clientX+"px");body.style.setProperty("--my",e.clientY+"px");});
   if(!reduce&&matchMedia("(hover:hover)").matches){
     document.addEventListener("pointermove",function(e){
       var c=e.target.closest&&e.target.closest(".card");
@@ -55,5 +56,5 @@
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});},{threshold:.1});
   function watch(){document.querySelectorAll(".card,.mini,.others-title").forEach(function(el,i){
     if(el.dataset.w)return;el.dataset.w=1;el.classList.add("reveal");el.style.transitionDelay=(i%4)*90+"ms";io.observe(el);});}
-  new MutationObserver(watch).observe(document.querySelector(".wrap"),{childList:true,subtree:true});watch();
+  new MutationObserver(watch).observe(document.getElementById("others"),{childList:true});watch();
 })();

@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#04091a">
-  <title>آب‌وهوای خوزستان و ایذه | ساعت و وضعیت زنده</title>
-  <meta name="description" content="وضعیت لحظه‌ای آب‌وهوا، پیش‌بینی ۵ روزه و ساعت زنده برای اهواز (خوزستان) و ایذه.">
+  <title>آب‌وهوای ایران | همه‌ی شهرها، ساعت و وضعیت زنده</title>
+  <meta name="description" content="وضعیت لحظه‌ای آب‌وهوا و پیش‌بینی برای همه‌ی استان‌ها و شهرهای ایران.">
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
@@ -24,7 +24,7 @@
     <header class="hero">
       <div class="hero-text">
         <p class="eyebrow">وضعیت زنده آب‌وهوا</p>
-        <h1>خوزستان <span class="amp">و</span> ایذه</h1>
+        <h1>آب‌وهوای <span class="amp">·</span> ایران</h1>
         <p class="date" id="date-fa">—</p>
         <p class="date-sub" id="date-en">—</p>
       </div>
@@ -63,19 +63,14 @@
     </section>
 
     <footer class="foot">
-      <p>
-        داده‌ها از سرویس <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
-        (مدل‌های هواشناسی جهانی) دریافت می‌شوند و هر ۱۰ دقیقه خودکار به‌روز می‌شوند.
-      </p>
       <p class="muted" id="status">آخرین به‌روزرسانی: —</p>
       <button id="refresh" type="button">به‌روزرسانی الان</button>
-      <p class="muted small">
-        این صفحه یک نمایش‌دهنده‌ی عمومی است و جایگزین پیش‌بینی رسمی اداره‌ی کل هواشناسی نیست؛
-        برای هشدارهای رسمی (گرد و غبار، سیل، گرمای شدید) به منابع رسمی مراجعه کنید.
-      </p>
+      <p class="note">⚠️ این پیش‌بینی‌ها مدلی هستند؛ برای هشدار رسمی گرد و غبار، سیل و گرما به هواشناسی مراجعه کنید.</p>
+      <p class="src">منبع: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></p>
     </footer>
   </main>
 
+  <script src="./cities.js"></script>
   <script src="./script.js"></script>
   <script src="./effects.js"></script>
   <script src="./extra.js"></script>

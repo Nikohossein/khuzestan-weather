@@ -36,6 +36,17 @@
   tools.innerHTML='<div class="sum" id="sum"></div><div class="bar"><input id="q" type="search" placeholder="جستجوی شهر…" aria-label="جستجوی شهر">'+
     '<div class="chips" role="group" aria-label="مرتب‌سازی"><button data-s="name" class="on">الفبایی</button><button data-s="hot">داغ‌ترین</button><button data-s="cold">سردترین</button><button data-s="humid">مرطوب‌ترین</button><button data-s="rain">بارانی‌ترین</button></div></div>';
   wrap.insertBefore(tools,box);
+  var sel=document.createElement("select");sel.id="prov";sel.setAttribute("aria-label","انتخاب استان");
+  sel.innerHTML=K.IRAN.map(function(p){return '<option value="'+p.n+'">'+p.n+' ('+fa(p.c.length)+' شهر)</option>'}).join("");sel.value=K.prov();
+  var bar0=$(".bar",tools);bar0.insertBefore(sel,bar0.firstChild);
+  var sug=document.createElement("div");sug.className="sug";sug.hidden=true;tools.appendChild(sug);
+  sel.addEventListener("change",function(){
+    Object.keys(raw).forEach(function(k){if(!Object.keys(K.CITIES).some(function(c){return K.CITIES[c].name===k}))delete raw[k];});
+    last=null;$("#q").value="";view.q="";sug.hidden=true;K.setProvince(sel.value);K.reload();
+  });
+  function findAll(q){var r=[];q=norm(q);if(q.length<2)return r;
+    K.IRAN.forEach(function(p){p.c.forEach(function(c){if(r.length<8&&norm(c[0]).indexOf(q)>-1)r.push({name:c[0],lat:c[1],lon:c[2],sub:"استان "+p.n});});});return r;}
+  sug.addEventListener("click",function(e){var b=e.target.closest("[data-k]");if(!b)return;var c=sug._r[+b.dataset.k];sug.hidden=true;open(c,b);});
   function applyView(){
     var d=last;if(!d)return;
     var idx=d.map(function(_,i){return i});
@@ -57,7 +68,9 @@
       '<div><span>💧 مرطوب‌ترین</span><b>'+hum+'</b><i>'+n(raw[hum].h)+'٪</i></div><div><span>💨 تندترین باد</span><b>'+wind+'</b><i>'+n(raw[wind].gust)+' km/h</i></div>';
     applyView();
   });
-  $("#q").addEventListener("input",function(e){view.q=e.target.value;applyView();});
+  $("#q").addEventListener("input",function(e){view.q=e.target.value;applyView();
+    var r=findAll(e.target.value);sug._r=r;sug.hidden=!r.length;
+    sug.innerHTML=r.map(function(c,i){return '<button type="button" data-k="'+i+'">'+c.name+'<small>'+c.sub+'</small></button>'}).join("");});
   tools.addEventListener("click",function(e){var b=e.target.closest("[data-s]");if(!b)return;view.sort=b.dataset.s;
     tools.querySelectorAll("[data-s]").forEach(function(x){x.classList.toggle("on",x===b)});applyView();});
 
